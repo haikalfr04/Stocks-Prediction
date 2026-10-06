@@ -23,7 +23,7 @@ def forecast(prices) -> dict:
     X, y = build_dataset(prices)
     model = lightgbm().fit(X[y.notna()], y.dropna())
     pred = float(model.predict(X.iloc[[-1]])[0])
-    close = float(prices["Close"].iloc[-1])
+    close = float(prices["RawClose"].iloc[-1])  # actual IDX price, not dividend-adjusted
     return {
         "as_of": f"{X.index[-1]:%Y-%m-%d}",
         "last_close": close,

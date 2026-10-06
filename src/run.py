@@ -60,9 +60,11 @@ def run_stock(code: str, prices: pd.DataFrame, test_start: str = TEST_START) -> 
     bh = backtest(pd.Series(1.0, index=idx), actual)
     equity["buy_hold"] = bh["equity"].to_numpy()
 
-    # Turn return predictions into next-day closing price predictions.
-    prev_close = prices["Close"].reindex(idx).to_numpy()
-    actual_close = prev_close * np.exp(actual.to_numpy())
+    # Turn return predictions into next-day closing price predictions, using the actual
+    # IDX prices (not dividend-adjusted) so the numbers match what investors saw.
+    raw = prices["RawClose"]
+    prev_close = raw.reindex(idx).to_numpy()
+    actual_close = raw.reindex(dates).to_numpy()
     pred_close = prev_close * np.exp(preds["lightgbm"].to_numpy())
 
     def rmse(a, b):

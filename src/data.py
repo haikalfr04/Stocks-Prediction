@@ -8,9 +8,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .config import DATA_PATH, STOCKS
+from .config import DATA_PATH, END_DATE, STOCKS
 
-COLUMNS = ["Open", "High", "Low", "Close", "Volume"]
+# Close is adjusted for dividends and splits (used for returns). RawClose is the closing
+# price as shown on the IDX (used when reporting prices in rupiah).
+COLUMNS = ["Open", "High", "Low", "Close", "Volume", "RawClose"]
 
 
 def load_prices(path: str | Path = DATA_PATH) -> dict[str, pd.DataFrame]:
@@ -24,6 +26,7 @@ def load_prices(path: str | Path = DATA_PATH) -> dict[str, pd.DataFrame]:
 
 def clean_prices(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
+    df["RawClose"] = df["Close"]
     if "Adj Close" in df.columns:
         # Scale Open/High/Low/Close by the Adj Close factor so that returns do not show
         # an artificial drop on ex-dividend dates.
@@ -37,7 +40,7 @@ def clean_prices(df: pd.DataFrame) -> pd.DataFrame:
     return df.sort_index()
 
 
-def synthetic_prices(seed: int = 0, end: str = "2026-10-02", n_days: int = 2900) -> pd.DataFrame:
+def synthetic_prices(seed: int = 0, end: str = END_DATE, n_days: int = 2900) -> pd.DataFrame:
     """Random-walk prices with volatility clustering, for tests and offline dry runs.
 
     The returns are random by construction, so a correct pipeline should find no edge here.
@@ -58,7 +61,8 @@ def synthetic_prices(seed: int = 0, end: str = "2026-10-02", n_days: int = 2900)
     volume = rng.lognormal(17, 0.4, n_days) * (1 + 20 * np.abs(ret))
     idx = pd.bdate_range(end=end, periods=n_days, name="Date")
     return pd.DataFrame(
-        {"Open": open_, "High": high, "Low": low, "Close": close, "Volume": volume}, index=idx
+        {"Open": open_, "High": high, "Low": low, "Close": close, "Volume": volume, "RawClose": close},
+        index=idx,
     )
 
 

@@ -5,9 +5,10 @@
 ![LightGBM](https://img.shields.io/badge/LightGBM-scikit--learn-orange)
 
 This project predicts the next-day return of three large Indonesian stocks, Astra International (ASII), Bank Rakyat
-Indonesia (BBRI) and Telkom Indonesia (TLKM), for every trading day in 2026. It compares two machine learning models
+Indonesia (BBRI) and Telkom Indonesia (TLKM), for every trading day from January to September 2026. It compares two machine learning models
 (Ridge regression and LightGBM) with three simple baselines, and tests whether the predictions would have made money
-after trading fees.
+after trading fees. The data covers a fixed period, from January 2015 to 30 September 2026, so every number below
+can be reproduced.
 
 <!-- RESULTS: replace this line with one sentence on the main result, e.g. "**LightGBM predicted the direction of ... correctly on ...% of days in 2026, compared with ...% for the best baseline.**" -->
 
@@ -19,8 +20,9 @@ The project aims to answer three questions:
 
 ## Results
 
-> Results are produced by running the [notebook](notebooks/idx_stock_prediction_colab.ipynb) and are saved in
-> [`results/`](results/). The full tables are in [`results/comparison.md`](results/comparison.md).
+> All results come from one run of the [notebook](notebooks/idx_stock_prediction_colab.ipynb) on data up to
+> 30 September 2026, and are saved in [`results/`](results/). The full tables are in
+> [`results/comparison.md`](results/comparison.md).
 
 <!-- RESULTS: after running the notebook, paste the "Summary" table from results/comparison.md here. -->
 
@@ -29,7 +31,7 @@ The project aims to answer three questions:
 ### Key findings
 
 <!-- RESULTS: write 3-4 findings based on results/comparison.md, for example:
-- How LightGBM's direction accuracy compares with the best baseline, and whether the difference is larger than chance (about ±3.6 percentage points for 190 days).
+- How LightGBM's direction accuracy compares with the best baseline, and whether the difference is larger than chance (about ±3.7 percentage points for 180 days).
 - Whether the price RMSE of LightGBM is lower than the naive prediction.
 - Whether the LightGBM strategy beat buy & hold after fees, and how many trades it made.
 - Which features LightGBM relied on most.
@@ -71,9 +73,11 @@ are what pure noise would produce.
 
 ## Method
 
-**Data.** Daily prices since 2015 are downloaded from Yahoo Finance (`ASII.JK`, `BBRI.JK`, `TLKM.JK`) and saved to an
-Excel file with one sheet per stock. Prices are adjusted for dividends and stock splits, so returns do not show an
-artificial drop on ex-dividend dates. Days with zero volume (holidays and trading halts) are removed.
+**Data.** Daily prices from 1 January 2015 to 30 September 2026 are downloaded from Yahoo Finance (`ASII.JK`,
+`BBRI.JK`, `TLKM.JK`) and saved to [`data/idx_prices.xlsx`](data/idx_prices.xlsx), with one sheet per stock. Returns
+are computed from prices adjusted for dividends and stock splits, so they do not show an artificial drop on
+ex-dividend dates. Prices reported in rupiah are the actual closing prices on the IDX. Days with zero volume
+(holidays and trading halts) are removed.
 
 **Target.** The models predict the next-day log return, $r_{t+1} = \ln(P_{t+1}/P_t)$, not the price. A predicted return
 is turned into a predicted price with $\hat P_{t+1} = P_t \cdot e^{\hat r_{t+1}}$.
@@ -123,7 +127,7 @@ The strategy is compared with buy & hold, using total return, Sharpe ratio and m
 
 ## Limitations and future work
 
-- The test period covers less than one year (about 190 trading days per stock). With this sample size, a direction accuracy within about ±3.6 percentage points of 50% can happen by chance, so small differences between models are not reliable. Testing on several years (for example 2022-2026) would give stronger conclusions.
+- The test period covers nine months (about 180 trading days per stock). With this sample size, a direction accuracy within about ±3.7 percentage points of 50% can happen by chance, so small differences between models are not reliable. Testing on several years (for example 2022-2026) would give stronger conclusions.
 - The backtest assumes that every trade happens exactly at the closing price, with no slippage, and ignores lot sizes and price tick rules.
 - The features use only prices and volume. News sentiment (for example with IndoBERT), macroeconomic data or foreign investor flows could add information.
 - Predicting volatility instead of direction is a promising alternative, because volatility is much more predictable and useful for risk management.
@@ -133,7 +137,7 @@ The strategy is compared with buy & hold, using total return, Sharpe ratio and m
 
 ```
 ├── src/
-│   ├── download.py    # downloads prices from Yahoo Finance into data/idx_prices.xlsx
+│   ├── download.py    # downloads prices for a fixed period from Yahoo Finance into data/idx_prices.xlsx
 │   ├── data.py        # loads the Excel file and adjusts prices for dividends and splits
 │   ├── eda.py         # data exploration: statistics, price history, return distribution, autocorrelation
 │   ├── features.py    # technical features and the next-day return target
@@ -141,9 +145,9 @@ The strategy is compared with buy & hold, using total return, Sharpe ratio and m
 │   ├── evaluate.py    # walk-forward validation and forecast metrics
 │   ├── backtest.py    # long-or-cash trading strategy with IDX fees
 │   ├── run.py         # runs the 2026 experiment and saves tables, predictions and charts
-│   ├── predict.py     # predicts the next trading day
+│   ├── predict.py     # predicts the first trading day after the data ends
 │   ├── plots.py       # shared chart style
-│   └── config.py      # stocks, test period, fees
+│   └── config.py      # stocks, data period, test period, fees
 ├── notebooks/idx_stock_prediction_colab.ipynb   # runs the full project on Google Colab
 ├── data/              # idx_prices.xlsx (created by src.download)
 ├── tests/             # unit tests for features, walk-forward splits, metrics and backtest
@@ -153,20 +157,22 @@ The strategy is compared with buy & hold, using total return, Sharpe ratio and m
 ## How to run
 
 The easiest way is to click the **Open in Colab** button at the top of this page and choose
-**Runtime → Run all**. No GPU is needed, and the notebook takes about 2 minutes.
+**Runtime → Run all**. No GPU is needed, and the notebook takes about 2 minutes. The data period is set at the start
+of section 1 of the notebook (`START_DATE` and `END_DATE`).
 
 To run the project on your own computer:
 
 ```bash
 pip install -r requirements.txt
 
-python -m src.download      # download prices into data/idx_prices.xlsx
+python -m src.download      # download prices from 2015-01-01 to 2026-09-30 into data/idx_prices.xlsx
 python -m src.eda           # explore the data
 python -m src.run           # walk-forward prediction for 2026, comparison with baselines and backtest
-python -m src.predict       # predict the next trading day
+python -m src.predict       # predict the first trading day after the data ends
 ```
 
-`src.download` accepts `--start`, `--end` and `--out`. The other scripts accept `--data path/to/file.xlsx` to use a
+The default period is set in `src/config.py`. `src.download` also accepts `--start`, `--end` (last day included)
+and `--out`. The other scripts accept `--data path/to/file.xlsx` to use a
 different Excel file. To check that everything works without an internet connection, add `--synthetic` to `src.eda`,
 `src.run` or `src.predict`. This uses random-walk prices and writes the output to `results_synthetic/` instead of
 `results/`.

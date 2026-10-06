@@ -32,7 +32,7 @@ def stats(code: str, prices: pd.DataFrame) -> dict:
         "first_date": f"{close.index[0]:%Y-%m-%d}",
         "last_date": f"{close.index[-1]:%Y-%m-%d}",
         "trading_days": len(close),
-        "last_close": float(close.iloc[-1]),
+        "last_close": float(prices["RawClose"].iloc[-1]),
         "mean_daily_return": float(ret.mean()),
         "annual_volatility": float(ret.std() * np.sqrt(TRADING_DAYS)),
         "share_of_unchanged_days": float((ret == 0).mean()),

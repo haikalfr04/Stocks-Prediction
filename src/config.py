@@ -7,7 +7,10 @@ STOCKS: dict[str, tuple[str, str]] = {
     "TLKM": ("TLKM.JK", "Telkom Indonesia"),
 }
 
+# Fixed data window, so every run uses the same data and the results can be reproduced.
+# END_DATE is the last day included.
 START_DATE = "2015-01-01"
+END_DATE = "2026-09-30"
 DATA_PATH = "data/idx_prices.xlsx"
 RESULTS_DIR = "results"
 
