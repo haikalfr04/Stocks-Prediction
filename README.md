@@ -5,12 +5,15 @@
 ![LightGBM](https://img.shields.io/badge/LightGBM-scikit--learn-orange)
 
 This project predicts the next-day return of three large Indonesian stocks, Astra International (ASII), Bank Rakyat
-Indonesia (BBRI) and Telkom Indonesia (TLKM), for every trading day from January to September 2026. It compares two machine learning models
-(Ridge regression and LightGBM) with three simple baselines, and tests whether the predictions would have made money
-after trading fees. The data covers a fixed period, from January 2015 to 30 September 2026, so every number below
-can be reproduced.
+Indonesia (BBRI) and Telkom Indonesia (TLKM), for every trading day from January to September 2026. It compares two
+machine learning models (Ridge regression and LightGBM) with three simple baselines, and tests whether the predictions
+would have made money after trading fees. The data covers a fixed period, from January 2015 to 30 September 2026, so
+every number below can be reproduced.
 
-<!-- RESULTS: replace this line with one sentence on the main result, e.g. "**LightGBM predicted the direction of ... correctly on ...% of days in 2026, compared with ...% for the best baseline.**" -->
+**Main result: no model predicted the daily direction better than chance in 2026.** LightGBM was right on 44-51% of
+days, inside the ±7.6 percentage point range around 50% that a coin flip produces over 176 days. Its trading strategy
+lost much less than buy & hold on TLKM (-5.6% vs -28.9%), but a luck test shows that random timing does this well 15%
+of the time.
 
 The project aims to answer three questions:
 
@@ -21,32 +24,41 @@ The project aims to answer three questions:
 ## Results
 
 > All results come from one run of the [notebook](notebooks/idx_stock_prediction_colab.ipynb) on data up to
-> 30 September 2026, and are saved in [`results/`](results/). The full tables are in
-> [`results/comparison.md`](results/comparison.md).
+> 30 September 2026, and are saved in [`results/`](results/). The full tables for every model are in
+> [`results/comparison.md`](results/comparison.md). The test period runs from 2 January to 30 September 2026
+> (176 trading days).
 
-<!-- RESULTS: after running the notebook, paste the "Summary" table from results/comparison.md here. -->
+| Stock | Up days in 2026 | Direction accuracy (LightGBM) | Best baseline | Price RMSE (LightGBM) | Price RMSE (naive) | LightGBM strategy | Buy & hold | Shift test p-value |
+|---|---|---|---|---|---|---|---|---|
+| ASII | 42.3% | 50.0% | 42.3% (historical mean) | Rp171 | Rp168 | -27.0% | -28.0% | 0.56 |
+| BBRI | 47.3% | 44.3% | 50.3% (momentum) | Rp68 | Rp66 | -22.0% | -8.8% | 0.62 |
+| TLKM | 48.1% | 50.6% | 50.6% (momentum) | Rp85 | Rp86 | -5.6% | -28.9% | 0.15 |
+
+<sub>*Up days* is the share of days with a price change on which the price rose. Strategy returns are after fees.
+The *shift test p-value* is the share of time-shifted copies of the strategy (same number of days in the market and
+trades, but unrelated timing) that earned at least as much. Values below 0.05 would suggest the timing is not luck.</sub>
 
 ![Direction accuracy per model](results/figures/model_comparison.png)
 
 ### Key findings
 
-<!-- RESULTS: write 3-4 findings based on results/comparison.md, for example:
-- How LightGBM's direction accuracy compares with the best baseline, and whether the difference is larger than chance (about ±3.7 percentage points for 180 days).
-- Whether the price RMSE of LightGBM is lower than the naive prediction.
-- Whether the LightGBM strategy beat buy & hold after fees, and how many trades it made.
-- Which features LightGBM relied on most.
--->
+- **2026 was a falling year, and no model saw it coming day by day.** All three stocks fell (ASII -28%, TLKM -29%, BBRI -9%), and prices rose on fewer than half of the days. Direction accuracy ranged from 44% to 51% for LightGBM and from 48% to 55% for Ridge regression. All of these are within the ±7.6 point range a coin flip produces over 176 days. Ridge regression on ASII (55.4%) came closest to the edge of that range, but it did not hold for the other two stocks.
+- **Accurate-looking price predictions were no better than "tomorrow = today".** LightGBM's predicted closing prices were off by Rp68 to Rp171 on a typical day (about 2%). The naive prediction that tomorrow's price equals today's was just as accurate, and slightly better for ASII and BBRI.
+- **Losing less than buy & hold was mostly a side effect of a falling market.** The LightGBM strategy held the stock on only about half of the days. In a year when the stocks fell sharply, being out of the market half the time reduces losses even with random timing. The shift test confirms this: random timing with the same number of days in the market did at least as well 15% (TLKM), 56% (ASII) and 62% (BBRI) of the time. Both model strategies still lost money on every stock, with negative Sharpe ratios.
+- **The only positive R² comes from three days.** On TLKM, Ridge regression and LightGBM had a positive R² against the random walk (+3.8% and +1.2%), which would normally be a strong result for daily returns. Almost all of it comes from the crash on 8 June 2026 (from Rp2,760 to Rp2,350, -14.9%) and the rebound on the next two days (+11.5% and +7.3%). Without these three days, R² is -2.0% for Ridge and -6.7% for LightGBM.
+- **Past returns contain a small, unusable pattern.** The autocorrelation chart shows small negative values at lags of 1 to 2 days (-0.07 for ASII, -0.08 for BBRI and -0.11 for TLKM). These are beyond the range of pure noise and mean that large moves tend to be partly reversed the next day or the day after. This also explains why the momentum baseline, which bets on the opposite, did worst on ASII (37.5%). The pattern is too weak to profit from after fees.
 
 ### Predictions for 2026
 
-The top chart compares the actual closing price with LightGBM's prediction made the evening before. The two lines
+The top chart compares TLKM's actual closing price with LightGBM's prediction made the evening before. The two lines
 almost overlap, but this is mostly because every prediction starts from the previous day's price. The bottom chart
-shows the real test: the predicted daily returns (blue line) are much smaller than the actual returns (gray bars).
+shows the real test: the predicted daily returns (blue line) are much smaller than the actual returns (gray bars),
+and the model did not anticipate the 15% drop on 8 June.
 
-![BBRI predictions in 2026](results/figures/BBRI_2026_predictions.png)
+![TLKM predictions in 2026](results/figures/TLKM_2026_predictions.png)
 
 Charts for the other stocks: [ASII](results/figures/ASII_2026_predictions.png),
-[TLKM](results/figures/TLKM_2026_predictions.png). Every daily prediction is saved in
+[BBRI](results/figures/BBRI_2026_predictions.png). Every daily prediction is saved in
 [`results/predictions/`](results/predictions/).
 
 ### Trading strategy
@@ -56,20 +68,49 @@ Charts for the other stocks: [ASII](results/figures/ASII_2026_predictions.png),
 ### Accuracy per month
 
 An overall accuracy close to 50% can hide months where the model did well or badly. Each month has only about 20
-trading days, so monthly values between 35% and 65% can easily happen by chance.
+trading days, so monthly values between about 30% and 70% can happen by chance. LightGBM's monthly accuracy ranged
+from 21% (TLKM, September) to 65% (ASII in August and TLKM in February), with no month in which the model did clearly
+well for all three stocks.
 
 ![Monthly direction accuracy](results/figures/monthly_accuracy.png)
 
+### What the model looked at
+
+LightGBM relied mostly on recent volatility (`vol_5`, `vol_10`, `vol_20`), the daily price range (`hl_range`,
+`close_in_range`) and recent returns. Volatility features are useful for predicting how much a price will move, but
+not in which direction, which matches the results above.
+
+![Feature importance](results/figures/feature_importance.png)
+
 ### Data exploration
 
-<!-- RESULTS: paste the table from results/eda_stats.md here. -->
+| Stock | Period | Trading days | Close on 30 Sep 2026 | Annual volatility | Unchanged days | Return 2026 | Lag-1 autocorrelation |
+|---|---|---|---|---|---|---|---|
+| ASII | 2015-01-02 to 2026-09-30 | 2,818 | Rp4,600 | 32.5% | 10.6% | -27.9% | -0.070 |
+| BBRI | 2015-01-02 to 2026-09-30 | 2,820 | Rp3,140 | 32.1% | 8.2% | -8.7% | +0.020 |
+| TLKM | 2015-01-02 to 2026-09-30 | 2,818 | Rp2,290 | 30.3% | 8.6% | -28.8% | -0.046 |
+
+About 8-11% of trading days close at exactly the same price as the day before. These days have no direction and are
+left out when measuring direction accuracy.
 
 ![Price history](results/figures/price_history.png)
 
-The autocorrelation of daily returns shows how much yesterday's return says about today's. Values inside the gray band
-are what pure noise would produce.
+The autocorrelation of daily returns shows how much the return of one day says about the return a few days later.
+Values inside the gray band are what pure noise would produce.
 
 ![Autocorrelation of daily returns](results/figures/autocorrelation.png)
+
+### Prediction for the next trading day
+
+LightGBM trained on all data up to 30 September 2026 predicts a small rise for all three stocks on the next trading
+day ([`results/next_day_forecast.md`](results/next_day_forecast.md)). Given the results above, these numbers show how
+the model works and should not be used to trade.
+
+| Stock | Close on 30 Sep 2026 | Predicted return | Predicted close |
+|---|---|---|---|
+| ASII | Rp4,600 | +0.98% | Rp4,645 |
+| BBRI | Rp3,140 | +0.20% | Rp3,146 |
+| TLKM | Rp2,290 | +0.73% | Rp2,307 |
 
 ## Method
 
@@ -119,15 +160,22 @@ prediction in 2026 therefore uses only information that was available at the tim
 - **Direction accuracy:** the share of days on which the model predicted the correct direction (up or down). Days on which the closing price did not change are left out, because IDX stocks often close unchanged and these days have no direction. The random walk never predicts a direction, so it has no direction accuracy.
 - **R² vs random walk:** $1 - \sum (r - \hat r)^2 / \sum r^2$. Positive values mean the model's errors are smaller than always predicting 0%. For daily stock returns, anything above 1% is considered very good (Campbell & Thompson, 2008).
 - **Price RMSE:** the typical error of the predicted closing price in rupiah, compared with the naive prediction.
+- **Chance range:** over $n$ days, a coin flip's accuracy stays within $\pm 1.96\sqrt{0.25/n}$ of 50% in 95% of cases. For the 2026 test period this is about ±7.6 percentage points.
 
 **Trading strategy.** At each close, the strategy holds the stock for the next day if the model predicts a positive
 return, and holds cash otherwise. Short selling is not used, because it is generally not available to retail investors
 on the IDX. A fee of 0.15% is charged on each purchase and 0.25% on each sale (including the 0.1% final income tax).
 The strategy is compared with buy & hold, using total return, Sharpe ratio and maximum drawdown.
 
+**Shift test.** A strategy that is out of the market half the time loses less than buy & hold in a falling year, even
+if its timing is random. To check whether the timing itself is useful, the strategy's sequence of "hold" and "cash"
+days is shifted in a circle by every possible number of days. Each shifted copy has the same number of days in the
+market and about the same number of trades, but its timing has nothing to do with the predictions. The p-value is the
+share of shifted copies that earned at least as much as the real strategy.
+
 ## Limitations and future work
 
-- The test period covers nine months (about 180 trading days per stock). With this sample size, a direction accuracy within about ±3.7 percentage points of 50% can happen by chance, so small differences between models are not reliable. Testing on several years (for example 2022-2026) would give stronger conclusions.
+- The test period covers nine months (176 trading days per stock), in a year when all three stocks fell. With this sample size, a direction accuracy within about ±7.6 percentage points of 50% can happen by chance, so small differences between models are not reliable. Testing on several years (for example 2022-2026) would give stronger conclusions.
 - The backtest assumes that every trade happens exactly at the closing price, with no slippage, and ignores lot sizes and price tick rules.
 - The features use only prices and volume. News sentiment (for example with IndoBERT), macroeconomic data or foreign investor flows could add information.
 - Predicting volatility instead of direction is a promising alternative, because volatility is much more predictable and useful for risk management.

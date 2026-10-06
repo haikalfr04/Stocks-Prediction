@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 from . import plots
-from .backtest import backtest, performance, signal_from_prediction
+from .backtest import backtest, performance, shift_test_pvalue, signal_from_prediction
 from .config import BUY_FEE, RESULTS_DIR, RETRAIN_EVERY, SELL_FEE, STOCKS, TEST_START
 from .data import add_data_args, load_from_args
 from .evaluate import forecast_metrics, walk_forward_predict
@@ -49,13 +49,16 @@ def run_stock(code: str, prices: pd.DataFrame, test_start: str = TEST_START) -> 
 
     models, equity = {}, {}
     for m in MODELS:
-        bt = backtest(signal_from_prediction(preds[m.key]), actual)
+        signal = signal_from_prediction(preds[m.key])
+        bt = backtest(signal, actual)
         models[m.key] = {
             "label": m.label,
             "baseline": m.baseline,
             "forecast": forecast_metrics(actual, preds[m.key]),
             "strategy": performance(bt),
         }
+        if not m.baseline:
+            models[m.key]["strategy"]["shift_test_pvalue"] = shift_test_pvalue(signal, actual)
         equity[m.key] = bt["equity"].to_numpy()
     bh = backtest(pd.Series(1.0, index=idx), actual)
     equity["buy_hold"] = bh["equity"].to_numpy()
@@ -86,6 +89,7 @@ def run_stock(code: str, prices: pd.DataFrame, test_start: str = TEST_START) -> 
     )
 
     moved = daily["actual_return"] != 0
+    n_moved = int(moved.sum())
     hit = ((daily["pred_return_lightgbm"] > 0) == (daily["actual_return"] > 0))[moved]
     by_month = hit.groupby(hit.index.to_period("M"))
     monthly = by_month.mean()[by_month.size() >= MIN_DAYS_PER_MONTH]
@@ -100,6 +104,10 @@ def run_stock(code: str, prices: pd.DataFrame, test_start: str = TEST_START) -> 
         "test_start": f"{dates[0]:%Y-%m-%d}",
         "test_end": f"{dates[-1]:%Y-%m-%d}",
         "n_test": len(idx),
+        # Share of up days among days with a price change, and the range around 50% that a
+        # coin flip stays inside 95% of the time over this many days.
+        "up_day_share": float((daily["actual_return"][moved] > 0).mean()),
+        "chance_band_95": float(1.96 * math.sqrt(0.25 / n_moved)),
         "models": models,
         "buy_hold": performance(bh),
         "price": {
@@ -136,26 +144,28 @@ def _num(x: float, digits: int = 2) -> str:
 
 def summary_table(results: list[dict]) -> str:
     lines = [
-        "| Stock | Direction accuracy (LightGBM) | Best baseline | Price RMSE (LightGBM) | Price RMSE (naive) "
-        "| Strategy return | Buy & hold return |",
-        "|---|---|---|---|---|---|---|",
+        "| Stock | Up days | Direction accuracy (LightGBM) | Best baseline | Price RMSE (LightGBM) "
+        "| Price RMSE (naive) | Strategy return | Buy & hold return | Shift test p-value |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for r in results:
         lg = r["models"]["lightgbm"]
         _, bb = best_baseline(r)
         lines.append(
-            f"| {r['code']} | {_pct(lg['forecast']['directional_accuracy'])} "
+            f"| {r['code']} | {_pct(r['up_day_share'])} | {_pct(lg['forecast']['directional_accuracy'])} "
             f"| {_pct(bb['forecast']['directional_accuracy'])} ({bb['label']}) "
             f"| Rp{r['price']['rmse_lightgbm']:,.0f} | Rp{r['price']['rmse_naive']:,.0f} "
-            f"| {_pct(lg['strategy']['total_return'], sign=True)} | {_pct(r['buy_hold']['total_return'], sign=True)} |"
+            f"| {_pct(lg['strategy']['total_return'], sign=True)} | {_pct(r['buy_hold']['total_return'], sign=True)} "
+            f"| {_num(lg['strategy']['shift_test_pvalue'])} |"
         )
     return "\n".join(lines) + "\n"
 
 
 def model_table(r: dict) -> str:
     lines = [
-        "| Model | Direction accuracy | R² vs random walk | MAE | Sharpe | Return | Max drawdown | Trades |",
-        "|---|---|---|---|---|---|---|---|",
+        "| Model | Direction accuracy | R² vs random walk | MAE | Sharpe | Return | Max drawdown | Trades "
+        "| Shift test p-value |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for key, m in r["models"].items():
         f, s = m["forecast"], m["strategy"]
@@ -163,12 +173,12 @@ def model_table(r: dict) -> str:
         lines.append(
             f"| {name} | {_pct(f['directional_accuracy'])} | {_pct(f['r2_vs_random_walk'], 2)} "
             f"| {_pct(f['mae'], 2)} | {_num(s['sharpe'])} | {_pct(s['total_return'], sign=True)} "
-            f"| {_pct(s['max_drawdown'])} | {s['trades']} |"
+            f"| {_pct(s['max_drawdown'])} | {s['trades']} | {_num(s.get('shift_test_pvalue', math.nan))} |"
         )
     bh = r["buy_hold"]
     lines.append(
         f"| *Buy & hold* | - | - | - | {_num(bh['sharpe'])} | {_pct(bh['total_return'], sign=True)} "
-        f"| {_pct(bh['max_drawdown'])} | 1 |"
+        f"| {_pct(bh['max_drawdown'])} | 1 | - |"
     )
     return "\n".join(lines) + "\n"
 
@@ -182,6 +192,11 @@ def comparison_markdown(results: list[dict], synthetic: bool) -> str:
         f"Test period: {r0['test_start']} to {r0['test_end']} ({r0['n_test']} trading days). "
         f"Models are retrained every {RETRAIN_EVERY} trading days. "
         f"Fees: {BUY_FEE:.2%} buy, {SELL_FEE:.2%} sell.\n",
+        "*Up days*: share of days with a price change on which the price rose. "
+        f"*Chance band*: a coin flip stays within ±{r0['chance_band_95']:.1%} of 50% on 95% of runs of this length. "
+        "*Shift test p-value*: share of time-shifted copies of the strategy (same days in the market, "
+        "same number of trades, unrelated timing) that earned at least as much. Values below 0.05 suggest "
+        "the timing is not luck.\n",
         "## Summary\n",
         summary_table(results),
     ]
@@ -206,8 +221,7 @@ def plot_model_comparison(results: list[dict], path: Path) -> None:
     ax.axhline(0.5, color=plots.ACTUAL, lw=0.8, ls="--", label="50% = coin flip")
     ax.set_xticks(x, labels)
     all_values = [r["models"][k]["forecast"]["directional_accuracy"] for r in results for k in keys]
-    finite = [v for v in all_values if not math.isnan(v)]
-    ax.set_ylim(min(0.4, min(finite) - 0.03), max(0.62, max(finite) + 0.05))
+    ax.set_ylim(0, max(0.7, max(v for v in all_values if not math.isnan(v)) + 0.1))
     ax.yaxis.set_major_formatter(plots.percent)
     ax.set_title("Direction accuracy in 2026 (out-of-sample)")
     ax.legend(ncol=4, loc="upper left")

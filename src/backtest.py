@@ -31,6 +31,25 @@ def signal_from_prediction(pred: pd.Series, threshold: float = 0.0) -> pd.Series
     return (pred > threshold).astype(float)
 
 
+def shift_test_pvalue(position: pd.Series, next_log_return: pd.Series) -> float:
+    """How often a strategy with the same timing pattern but shifted dates does as well.
+
+    The position series is shifted in a circle by every possible number of days. Each
+    shifted copy is in the market on the same number of days and trades about as often,
+    but its timing is unrelated to the model's predictions. The result is the share of
+    shifted copies whose total return is at least the original's: a small value means the
+    original timing is unlikely to be luck.
+    """
+    position, next_log_return = position.align(next_log_return, join="inner")
+    observed = performance(backtest(position, next_log_return))["total_return"]
+    values = position.to_numpy()
+    shifted_returns = [
+        performance(backtest(pd.Series(np.roll(values, k), index=position.index), next_log_return))["total_return"]
+        for k in range(1, len(values))
+    ]
+    return float(np.mean(np.array(shifted_returns) >= observed - 1e-12))
+
+
 def performance(bt: pd.DataFrame) -> dict[str, float]:
     r, equity = bt["return"], bt["equity"]
     years = len(r) / TRADING_DAYS

@@ -65,7 +65,7 @@ def plot_prices(data: dict[str, pd.DataFrame], path: Path) -> None:
         ax.axvspan(pd.Timestamp(TEST_START), close.index[-1], color=plots.TEST_SHADE, alpha=0.08, lw=0)
         ax.set_title(f"{code} - {STOCKS[code][1]}")
         ax.yaxis.set_major_formatter(plots.rupiah)
-    axes[0].text(pd.Timestamp(TEST_START), 1.0, " test period (2026)", va="top", fontsize=8,
+    axes[0].text(pd.Timestamp(TEST_START), 1.0, "test period (2026) ", ha="right", va="top", fontsize=8,
                  color=plots.ACTUAL, transform=axes[0].get_xaxis_transform())
     fig.suptitle("Adjusted closing price", x=0.01, ha="left", fontweight="bold")
     fig.tight_layout()

@@ -1,0 +1,516 @@
+{
+  "generated_at": "2026-10-06T06:01:04Z",
+  "synthetic": false,
+  "settings": {
+    "test_start": "2026-01-01",
+    "retrain_every": 21,
+    "buy_fee": 0.0015,
+    "sell_fee": 0.0025
+  },
+  "stocks": {
+    "ASII": {
+      "code": "ASII",
+      "company": "Astra International",
+      "n_train": 2591,
+      "test_start": "2026-01-02",
+      "test_end": "2026-09-30",
+      "n_test": 176,
+      "up_day_share": 0.4226190476190476,
+      "chance_band_95": 0.07560864148142503,
+      "models": {
+        "random_walk": {
+          "label": "Random walk",
+          "baseline": true,
+          "forecast": {
+            "mae": 0.01987776242625905,
+            "rmse": 0.028122960443231156,
+            "r2_vs_random_walk": 0.0,
+            "directional_accuracy": null,
+            "information_coefficient": null,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": 0.0,
+            "cagr": 0.0,
+            "annual_volatility": 0.0,
+            "sharpe": null,
+            "max_drawdown": 0.0,
+            "exposure": 0.0,
+            "trades": 0
+          }
+        },
+        "hist_mean": {
+          "label": "Historical mean",
+          "baseline": true,
+          "forecast": {
+            "mae": 0.019893037312908014,
+            "rmse": 0.028129978452027603,
+            "r2_vs_random_walk": -0.0004991568702865656,
+            "directional_accuracy": 0.4226190476190476,
+            "information_coefficient": -0.03782427816565584,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.2798320776631471,
+            "cagr": -0.3750128555652241,
+            "annual_volatility": 0.4487275297048698,
+            "sharpe": -0.825011686421282,
+            "max_drawdown": -0.38106100520331954,
+            "exposure": 1.0,
+            "trades": 1
+          }
+        },
+        "momentum": {
+          "label": "Momentum",
+          "baseline": true,
+          "forecast": {
+            "mae": 0.03333544777996753,
+            "rmse": 0.04426151045170836,
+            "r2_vs_random_walk": -1.477024994322084,
+            "directional_accuracy": 0.375,
+            "information_coefficient": -0.2827226427534405,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.6536255461959066,
+            "cagr": -0.7808641756897745,
+            "annual_volatility": 0.23477096334778963,
+            "sharpe": -6.326386232481729,
+            "max_drawdown": -0.6803664411183024,
+            "exposure": 0.4090909090909091,
+            "trades": 55
+          }
+        },
+        "ridge": {
+          "label": "Ridge regression",
+          "baseline": false,
+          "forecast": {
+            "mae": 0.019920922650261262,
+            "rmse": 0.02835376269272383,
+            "r2_vs_random_walk": -0.016481147861028056,
+            "directional_accuracy": 0.5535714285714286,
+            "information_coefficient": 0.03583498389763675,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.2734671824359328,
+            "cagr": -0.3670888822725171,
+            "annual_volatility": 0.32334789303728084,
+            "sharpe": -1.2500525415345511,
+            "max_drawdown": -0.3206620532372625,
+            "exposure": 0.5113636363636364,
+            "trades": 35,
+            "shift_test_pvalue": 0.5542857142857143
+          }
+        },
+        "lightgbm": {
+          "label": "LightGBM",
+          "baseline": false,
+          "forecast": {
+            "mae": 0.020465600967399567,
+            "rmse": 0.02864718196846591,
+            "r2_vs_random_walk": -0.0376281408819954,
+            "directional_accuracy": 0.5,
+            "information_coefficient": 0.005444918770858438,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.2703498629547123,
+            "cagr": -0.3631970107807466,
+            "annual_volatility": 0.37469775655748916,
+            "sharpe": -1.0183905784656366,
+            "max_drawdown": -0.34049357874678465,
+            "exposure": 0.5568181818181818,
+            "trades": 25,
+            "shift_test_pvalue": 0.56
+          }
+        }
+      },
+      "buy_hold": {
+        "total_return": -0.2798320776631471,
+        "cagr": -0.3750128555652241,
+        "annual_volatility": 0.4487275297048698,
+        "sharpe": -0.825011686421282,
+        "max_drawdown": -0.38106100520331954,
+        "exposure": 1.0,
+        "trades": 1
+      },
+      "price": {
+        "rmse_lightgbm": 171.19174004435587,
+        "rmse_naive": 168.30285877764308,
+        "mape_lightgbm": 0.020578836368495435,
+        "mape_naive": 0.019994184649716248
+      },
+      "monthly_accuracy": {
+        "2026-01": 0.45,
+        "2026-02": 0.5,
+        "2026-03": 0.4375,
+        "2026-04": 0.5789473684210527,
+        "2026-05": 0.5625,
+        "2026-06": 0.2631578947368421,
+        "2026-07": 0.5,
+        "2026-08": 0.6470588235294118,
+        "2026-09": 0.5714285714285714
+      },
+      "feature_importance": {
+        "vol_5": 0.06889613873158068,
+        "close_in_range": 0.06724594407563891,
+        "vol_20": 0.06301164679102503,
+        "vol_10": 0.058593138065445624,
+        "ret_lag2": 0.05845967818041673,
+        "macd": 0.055781618846062135,
+        "hl_range": 0.052808900378548004,
+        "volume_z20": 0.05194460823881237,
+        "ret_lag5": 0.050568275857309185,
+        "ret_mean_20": 0.04942968882866895,
+        "dist_ma50": 0.04888661978958429,
+        "ret_lag3": 0.0487964467933572,
+        "dist_ma20": 0.04691047607628054,
+        "vol_ratio_5_20": 0.044395343571793276,
+        "ret_lag4": 0.044259669123258474,
+        "macd_hist": 0.04324076927334621,
+        "ret_lag1": 0.043123436028948595,
+        "ret_mean_5": 0.03511184021946655,
+        "ret_mean_10": 0.03502550730236521,
+        "rsi_14": 0.024047149994956104,
+        "day_of_week": 0.009463103833135913
+      }
+    },
+    "BBRI": {
+      "code": "BBRI",
+      "company": "Bank Rakyat Indonesia",
+      "n_train": 2594,
+      "test_start": "2026-01-02",
+      "test_end": "2026-09-30",
+      "n_test": 176,
+      "up_day_share": 0.47305389221556887,
+      "chance_band_95": 0.0758346767883454,
+      "models": {
+        "random_walk": {
+          "label": "Random walk",
+          "baseline": true,
+          "forecast": {
+            "mae": 0.015487193998339118,
+            "rmse": 0.02045095978522567,
+            "r2_vs_random_walk": 0.0,
+            "directional_accuracy": null,
+            "information_coefficient": null,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": 0.0,
+            "cagr": 0.0,
+            "annual_volatility": 0.0,
+            "sharpe": null,
+            "max_drawdown": 0.0,
+            "exposure": 0.0,
+            "trades": 0
+          }
+        },
+        "hist_mean": {
+          "label": "Historical mean",
+          "baseline": true,
+          "forecast": {
+            "mae": 0.015524271707292219,
+            "rmse": 0.02046365559879669,
+            "r2_vs_random_walk": -0.0012419714713405305,
+            "directional_accuracy": 0.47305389221556887,
+            "information_coefficient": -0.08528062887111923,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.08795866190989599,
+            "cagr": -0.12350777672847124,
+            "annual_volatility": 0.326221461571529,
+            "sharpe": -0.2423376088884014,
+            "max_drawdown": -0.30540648325431985,
+            "exposure": 1.0,
+            "trades": 1
+          }
+        },
+        "momentum": {
+          "label": "Momentum",
+          "baseline": true,
+          "forecast": {
+            "mae": 0.021601601147242147,
+            "rmse": 0.029346726622851132,
+            "r2_vs_random_walk": -1.059168772221831,
+            "directional_accuracy": 0.5029940119760479,
+            "information_coefficient": 0.020499716007907745,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.16916496251958557,
+            "cagr": -0.23306275041291935,
+            "annual_volatility": 0.20767739881898384,
+            "sharpe": -1.1740366761878926,
+            "max_drawdown": -0.20299257286430705,
+            "exposure": 0.45454545454545453,
+            "trades": 44
+          }
+        },
+        "ridge": {
+          "label": "Ridge regression",
+          "baseline": false,
+          "forecast": {
+            "mae": 0.01556331665921461,
+            "rmse": 0.020567827679304665,
+            "r2_vs_random_walk": -0.01146174249298082,
+            "directional_accuracy": 0.47904191616766467,
+            "information_coefficient": 0.004248583998674599,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.24242900513311894,
+            "cagr": -0.3280203151938931,
+            "annual_volatility": 0.24210750186700364,
+            "sharpe": -1.5206365602778595,
+            "max_drawdown": -0.30533667217011395,
+            "exposure": 0.5795454545454546,
+            "trades": 53,
+            "shift_test_pvalue": 0.56
+          }
+        },
+        "lightgbm": {
+          "label": "LightGBM",
+          "baseline": false,
+          "forecast": {
+            "mae": 0.016115189945995752,
+            "rmse": 0.02069222616357014,
+            "r2_vs_random_walk": -0.02373380304995054,
+            "directional_accuracy": 0.4431137724550898,
+            "information_coefficient": -0.03664128531499414,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.21977603325258777,
+            "cagr": -0.29906521171047906,
+            "annual_volatility": 0.25959731318086654,
+            "sharpe": -1.2395006571762874,
+            "max_drawdown": -0.2993584203689439,
+            "exposure": 0.5681818181818182,
+            "trades": 40,
+            "shift_test_pvalue": 0.6228571428571429
+          }
+        }
+      },
+      "buy_hold": {
+        "total_return": -0.08795866190989599,
+        "cagr": -0.12350777672847124,
+        "annual_volatility": 0.326221461571529,
+        "sharpe": -0.2423376088884014,
+        "max_drawdown": -0.30540648325431985,
+        "exposure": 1.0,
+        "trades": 1
+      },
+      "price": {
+        "rmse_lightgbm": 67.8808621914038,
+        "rmse_naive": 66.04922406811453,
+        "mape_lightgbm": 0.01636666506716369,
+        "mape_naive": 0.01571314934927708
+      },
+      "monthly_accuracy": {
+        "2026-01": 0.4444444444444444,
+        "2026-02": 0.3333333333333333,
+        "2026-03": 0.3125,
+        "2026-04": 0.3,
+        "2026-05": 0.6,
+        "2026-06": 0.5789473684210527,
+        "2026-07": 0.6086956521739131,
+        "2026-08": 0.47058823529411764,
+        "2026-09": 0.3333333333333333
+      },
+      "feature_importance": {
+        "ret_mean_5": 0.06818945592000679,
+        "vol_10": 0.06286139998296694,
+        "vol_20": 0.06044536939482134,
+        "ret_lag3": 0.058906450473892404,
+        "hl_range": 0.058631911446325215,
+        "ret_lag4": 0.056032199333176755,
+        "ret_lag2": 0.055617376923955256,
+        "ret_lag1": 0.05437004441701102,
+        "ret_mean_10": 0.052321937019289874,
+        "volume_z20": 0.05084883100543917,
+        "close_in_range": 0.049134121780739615,
+        "vol_5": 0.04577045151792162,
+        "dist_ma50": 0.04395849879609058,
+        "macd": 0.04182652248200373,
+        "vol_ratio_5_20": 0.04169364693355377,
+        "ret_lag5": 0.04154435210590798,
+        "ret_mean_20": 0.04149418026187001,
+        "dist_ma20": 0.04000019564743957,
+        "macd_hist": 0.03540065762118779,
+        "rsi_14": 0.031785415477463864,
+        "day_of_week": 0.00916698145893672
+      }
+    },
+    "TLKM": {
+      "code": "TLKM",
+      "company": "Telkom Indonesia",
+      "n_train": 2592,
+      "test_start": "2026-01-02",
+      "test_end": "2026-09-30",
+      "n_test": 176,
+      "up_day_share": 0.48125,
+      "chance_band_95": 0.0774758026741253,
+      "models": {
+        "random_walk": {
+          "label": "Random walk",
+          "baseline": true,
+          "forecast": {
+            "mae": 0.019041765201407046,
+            "rmse": 0.028627193095641393,
+            "r2_vs_random_walk": 0.0,
+            "directional_accuracy": null,
+            "information_coefficient": null,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": 0.0,
+            "cagr": 0.0,
+            "annual_volatility": 0.0,
+            "sharpe": null,
+            "max_drawdown": 0.0,
+            "exposure": 0.0,
+            "trades": 0
+          }
+        },
+        "hist_mean": {
+          "label": "Historical mean",
+          "baseline": true,
+          "forecast": {
+            "mae": 0.01906402558354998,
+            "rmse": 0.028641209377259225,
+            "r2_vs_random_walk": -0.000979468217969126,
+            "directional_accuracy": 0.48125,
+            "information_coefficient": 0.06666396895426331,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.2893665427360351,
+            "cagr": -0.38682626301581213,
+            "annual_volatility": 0.44838929546855244,
+            "sharpe": -0.8629568367698085,
+            "max_drawdown": -0.4035532984718171,
+            "exposure": 1.0,
+            "trades": 1
+          }
+        },
+        "momentum": {
+          "label": "Momentum",
+          "baseline": true,
+          "forecast": {
+            "mae": 0.026916465426588983,
+            "rmse": 0.04044319091113637,
+            "r2_vs_random_walk": -0.9958747880036429,
+            "directional_accuracy": 0.50625,
+            "information_coefficient": 0.053050733860232346,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.23456697871121523,
+            "cagr": -0.31801282189554014,
+            "annual_volatility": 0.29447315870319085,
+            "sharpe": -1.150313591176067,
+            "max_drawdown": -0.2696275501272064,
+            "exposure": 0.4375,
+            "trades": 42
+          }
+        },
+        "ridge": {
+          "label": "Ridge regression",
+          "baseline": false,
+          "forecast": {
+            "mae": 0.0190801447459363,
+            "rmse": 0.028082935929717785,
+            "r2_vs_random_walk": 0.03766233624783388,
+            "directional_accuracy": 0.50625,
+            "information_coefficient": 0.08434549379941851,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.08217523559250761,
+            "cagr": -0.11553884497888789,
+            "annual_volatility": 0.3614594753925722,
+            "sharpe": -0.15746133265909665,
+            "max_drawdown": -0.29802584302469604,
+            "exposure": 0.5909090909090909,
+            "trades": 29,
+            "shift_test_pvalue": 0.14285714285714285
+          }
+        },
+        "lightgbm": {
+          "label": "LightGBM",
+          "baseline": false,
+          "forecast": {
+            "mae": 0.019380690756150672,
+            "rmse": 0.02844878972415933,
+            "r2_vs_random_walk": 0.012425072204621412,
+            "directional_accuracy": 0.50625,
+            "information_coefficient": 0.08705178987887563,
+            "n_predictions": 176
+          },
+          "strategy": {
+            "total_return": -0.05571662624695006,
+            "cagr": -0.07880603939348785,
+            "annual_volatility": 0.2889870207049614,
+            "sharpe": -0.14291692745713086,
+            "max_drawdown": -0.2242557148591534,
+            "exposure": 0.5,
+            "trades": 36,
+            "shift_test_pvalue": 0.15428571428571428
+          }
+        }
+      },
+      "buy_hold": {
+        "total_return": -0.2893665427360351,
+        "cagr": -0.38682626301581213,
+        "annual_volatility": 0.44838929546855244,
+        "sharpe": -0.8629568367698085,
+        "max_drawdown": -0.4035532984718171,
+        "exposure": 1.0,
+        "trades": 1
+      },
+      "price": {
+        "rmse_lightgbm": 85.42030593840774,
+        "rmse_naive": 86.20469824783333,
+        "mape_lightgbm": 0.019762165454373985,
+        "mape_naive": 0.019426599851230127
+      },
+      "monthly_accuracy": {
+        "2026-01": 0.5263157894736842,
+        "2026-02": 0.6470588235294118,
+        "2026-03": 0.625,
+        "2026-04": 0.45,
+        "2026-05": 0.5,
+        "2026-06": 0.5263157894736842,
+        "2026-07": 0.5,
+        "2026-08": 0.625,
+        "2026-09": 0.21052631578947367
+      },
+      "feature_importance": {
+        "hl_range": 0.08061901339162174,
+        "ret_mean_5": 0.06940457733339259,
+        "ret_lag2": 0.06427944643319372,
+        "close_in_range": 0.0625847516742198,
+        "ret_lag4": 0.055993538794001846,
+        "ret_lag3": 0.05561982850172186,
+        "vol_10": 0.053511492830380834,
+        "dist_ma50": 0.050223860886949176,
+        "vol_20": 0.04947438534868817,
+        "ret_lag1": 0.04927401022005061,
+        "macd_hist": 0.04777141222382082,
+        "ret_lag5": 0.04680676783858111,
+        "volume_z20": 0.044044672021835346,
+        "dist_ma20": 0.04151136266047417,
+        "vol_5": 0.04130427701588461,
+        "ret_mean_20": 0.04129333245933017,
+        "ret_mean_10": 0.040439399264328615,
+        "macd": 0.03992546089311078,
+        "vol_ratio_5_20": 0.034107626206264015,
+        "rsi_14": 0.023351540866446068,
+        "day_of_week": 0.008459243135703936
+      }
+    }
+  }
+}
