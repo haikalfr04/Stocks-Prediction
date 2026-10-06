@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from stockpred.evaluate import directional_accuracy, forecast_metrics, walk_forward_predict, walk_forward_splits
+from src.evaluate import directional_accuracy, forecast_metrics, walk_forward_predict, walk_forward_splits
 
 
 def test_splits_train_strictly_before_test_and_cover_everything():

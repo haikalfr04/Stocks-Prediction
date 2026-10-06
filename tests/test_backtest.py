@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from stockpred.backtest import backtest, performance
+from src.backtest import backtest, performance
 
 
 def test_always_long_matches_compounded_return_minus_entry_fee():

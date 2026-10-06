@@ -1,4 +1,4 @@
-"""Model baseline dan model machine learning, semuanya punya fit(X, y) / predict(X)."""
+"""Baselines and learned models, all exposing fit(X, y) / predict(X)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 class RandomWalk:
-    """Prediksi return 0: harga besok sama dengan harga hari ini."""
+    """Predict a zero return: tomorrow's price equals today's."""
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "RandomWalk":
         return self
@@ -24,7 +24,7 @@ class RandomWalk:
 
 
 class HistoricalMean:
-    """Prediksi rata-rata return harian pada data latih."""
+    """Predict the average daily return seen in training (drift only)."""
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "HistoricalMean":
         self.mean_ = float(y.mean())
@@ -35,7 +35,7 @@ class HistoricalMean:
 
 
 class Momentum:
-    """Prediksi bahwa return hari ini terulang besok."""
+    """Predict that today's return repeats tomorrow."""
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> "Momentum":
         return self
@@ -73,8 +73,8 @@ class ModelSpec:
 
 MODELS: list[ModelSpec] = [
     ModelSpec("random_walk", "Random walk", RandomWalk, True),
-    ModelSpec("hist_mean", "Rata-rata historis", HistoricalMean, True),
+    ModelSpec("hist_mean", "Historical mean", HistoricalMean, True),
     ModelSpec("momentum", "Momentum", Momentum, True),
-    ModelSpec("ridge", "Regresi Ridge", ridge, False),
+    ModelSpec("ridge", "Ridge regression", ridge, False),
     ModelSpec("lightgbm", "LightGBM", lightgbm, False),
 ]

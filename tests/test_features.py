@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from stockpred.data import synthetic_prices
-from stockpred.features import build_dataset, make_features, make_target
+from src.data import synthetic_prices
+from src.features import build_dataset, make_features, make_target
 
 
 def test_features_do_not_look_ahead():

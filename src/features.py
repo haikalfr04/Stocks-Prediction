@@ -1,7 +1,7 @@
 """Feature engineering.
 
-Setiap fitur pada baris t hanya memakai informasi yang tersedia saat penutupan hari t.
-Target pada baris t adalah log return dari penutupan hari t ke penutupan hari t+1.
+Every feature on row t uses only information available at the close of day t.
+The target on row t is the log return from close t to close t+1.
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ def make_features(prices: pd.DataFrame) -> pd.DataFrame:
     f = pd.DataFrame(index=prices.index)
 
     for k in range(1, LAGS + 1):
-        f[f"ret_lag{k}"] = ret.shift(k - 1)  # ret_lag1 = return hari ini
+        f[f"ret_lag{k}"] = ret.shift(k - 1)  # ret_lag1 is today's return
     for w in WINDOWS:
         f[f"ret_mean_{w}"] = ret.rolling(w).mean()
         f[f"vol_{w}"] = ret.rolling(w).std()
@@ -59,9 +59,9 @@ def make_target(prices: pd.DataFrame) -> pd.Series:
 
 
 def build_dataset(prices: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
-    """Kembalikan (X, y) pada tanggal yang semua fiturnya tersedia.
+    """Return (X, y) aligned on dates where all features exist.
 
-    Baris terakhir tidak punya target (NaN): baris inilah yang dipakai untuk prediksi besok.
+    The last row has no target (NaN): it is the row used for the next-day forecast.
     """
     X = make_features(prices).replace([np.inf, -np.inf], np.nan).dropna()
     y = make_target(prices).reindex(X.index)
