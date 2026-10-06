@@ -1,18 +1,19 @@
-"""Project-wide settings."""
+"""Pengaturan proyek."""
 
-TICKERS: dict[str, str] = {
-    "ASII.JK": "Astra International",
-    "BBRI.JK": "Bank Rakyat Indonesia",
-    "TLKM.JK": "Telkom Indonesia",
+# Kode saham -> nama perusahaan. Kode dipakai sebagai nama sheet di file Excel.
+SAHAM: dict[str, str] = {
+    "ASII": "Astra International",
+    "BBRI": "Bank Rakyat Indonesia",
+    "TLKM": "Telkom Indonesia",
 }
 
-START_DATE = "2015-01-01"
+# Periode uji: semua hari bursa di tahun 2026. Data sebelumnya hanya untuk pelatihan.
+TEST_START = "2026-01-01"
 
-# Walk-forward validation: train on at least ~3 years, retrain every ~month.
-MIN_TRAIN_DAYS = 750
+# Model dilatih ulang kira-kira setiap bulan (21 hari bursa) selama periode uji.
 RETRAIN_EVERY = 21
 
-# Typical IDX retail broker fees. The sell side includes the 0.1% final income tax.
+# Biaya transaksi broker ritel IDX yang umum. Biaya jual sudah termasuk PPh final 0,1%.
 BUY_FEE = 0.0015
 SELL_FEE = 0.0025
 

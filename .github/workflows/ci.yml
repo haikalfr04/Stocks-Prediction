@@ -3,7 +3,6 @@ name: CI
 on:
   pull_request:
   push:
-    branches-ignore: [main]
 
 jobs:
   test:
@@ -17,5 +16,3 @@ jobs:
           cache-dependency-path: pyproject.toml
       - run: pip install -e ".[dev]"
       - run: pytest -q
-      - name: Smoke-test the pipeline on synthetic data
-        run: python -m stockpred.pipeline --synthetic --out /tmp/site-data

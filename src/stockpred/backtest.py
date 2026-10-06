@@ -1,4 +1,4 @@
-"""Long-or-cash backtest with IDX transaction costs (no short selling)."""
+"""Backtest strategi beli-atau-tunai dengan biaya transaksi IDX (tanpa short selling)."""
 
 from __future__ import annotations
 
@@ -14,9 +14,9 @@ def backtest(
     buy_fee: float = BUY_FEE,
     sell_fee: float = SELL_FEE,
 ) -> pd.DataFrame:
-    """Simulate holding ``position`` (0 or 1) from close t to close t+1.
+    """Simulasikan memegang ``position`` (0 atau 1) dari penutupan t ke penutupan t+1.
 
-    Fees are charged on the day the position changes.
+    Biaya dikenakan pada hari posisi berubah.
     """
     position, next_log_return = position.align(next_log_return, join="inner")
     position = position.astype(float)

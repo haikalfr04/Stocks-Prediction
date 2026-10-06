@@ -3,5 +3,15 @@ __pycache__/
 .venv/
 .pytest_cache/
 .ipynb_checkpoints/
-data/raw/
-site/data/
+
+# Hasil yang dibuat ulang oleh `python -m stockpred.report`
+laporan/generated/
+
+# File sementara LaTeX
+laporan/*.aux
+laporan/*.fdb_latexmk
+laporan/*.fls
+laporan/*.log
+laporan/*.out
+laporan/*.toc
+laporan/laporan.pdf

@@ -1,74 +1,87 @@
-# IDX Next-Day Return Prediction
+# Prediksi Return Harian ASII, BBRI, dan TLKM Selama 2026
 
-Predicting tomorrow's return for **ASII** (Astra International), **BBRI** (Bank Rakyat Indonesia) and
-**TLKM** (Telkom Indonesia), and testing whether the predictions would beat simply holding the stock.
+Proyek ini menguji apakah return harian saham **ASII** (Astra International), **BBRI**
+(Bank Rakyat Indonesia), dan **TLKM** (Telkom Indonesia) dapat diprediksi selama tahun 2026.
+Hasilnya ditulis dalam laporan LaTeX berbahasa Indonesia (`laporan/laporan.tex`). Kode
+programnya ikut dilampirkan di dalam laporan.
 
-**Live dashboard:** https://haikalfr04.github.io/Stocks-Prediction/
-
-The dashboard is a static site on GitHub Pages. A GitHub Actions job runs every weekday after
-the IDX close: it downloads fresh prices, retrains the models, regenerates the results as JSON
-and redeploys the site. No server is needed.
-
-## Why this project is set up the way it is
-
-Many stock-prediction projects report impressive results that come from avoidable mistakes.
-This project is built to avoid them:
-
-| Common mistake | What this project does instead |
-|---|---|
-| Predicting the price level, which looks great because tomorrow's price ≈ today's price | Predicts the **next-day log return** |
-| Random train/test split or scaling fit on all data (leakage) | **Walk-forward validation**: train on the past, predict the next month, retrain, repeat. A test checks that features never use future data |
-| No baseline | Compares against **random walk, historical mean and momentum** baselines |
-| Accuracy only | **Backtest** with IDX fees (0.15% buy, 0.25% sell, long-or-cash), compared with buy & hold |
-
-The honest result is that daily returns are very hard to predict. That finding is reported
-directly instead of being hidden.
-
-## Pipeline
+## Alur kerja
 
 ```
-Yahoo Finance ──► features.py ──► walk-forward (evaluate.py) ──► backtest.py ──► site/data/*.json ──► GitHub Pages
-                  lags, volatility,   Random walk / Hist. mean /     long-or-cash      static dashboard
-                  RSI, MACD, volume   Momentum / Ridge / LightGBM    with fees         (Plotly)
+scripts/download_data.py  ──►  data/data_saham.xlsx  ──►  python -m stockpred.report  ──►  laporan/generated/  ──►  laporan.pdf
+   (Yahoo Finance)              (1 sheet per saham)        (model, tabel, grafik)          (.tex + .pdf)          (latexmk)
 ```
 
-| Module | Purpose |
-|---|---|
-| `src/stockpred/data.py` | Downloads adjusted OHLCV with a CSV cache; synthetic prices for offline runs |
-| `src/stockpred/features.py` | Feature engineering (each feature uses only data up to day *t*) and the target |
-| `src/stockpred/models.py` | Baselines, Ridge and LightGBM |
-| `src/stockpred/evaluate.py` | Walk-forward splits, out-of-sample metrics (directional accuracy, R² vs random walk, IC) |
-| `src/stockpred/backtest.py` | Long-or-cash backtest with fees, Sharpe ratio, drawdown |
-| `src/stockpred/pipeline.py` | Runs everything and writes JSON for the site |
-| `site/` | Static dashboard (HTML, CSS, JS) |
-
-## Run locally
+### 1. Instal
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
-pytest
-
-python -m stockpred.pipeline --out site/data             # real data from Yahoo Finance
-python -m stockpred.pipeline --out site/data --synthetic # offline demo data
-
-python -m http.server -d site 8000                       # open http://localhost:8000
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e ".[download,dev]"
 ```
 
-## Deploying to GitHub Pages
+### 2. Unduh data ke Excel
 
-1. In the repository go to **Settings → Pages** and set **Source** to **GitHub Actions**.
-2. Push to `main`. The `Update predictions and deploy site` workflow tests, runs the pipeline
-   and deploys. After that it runs automatically every weekday, and you can also start it
-   manually from the **Actions** tab.
+```bash
+python scripts/download_data.py
+```
 
-## Possible extensions
+Hasilnya `data/data_saham.xlsx` dengan sheet `ASII`, `BBRI`, `TLKM`, dan `Keterangan`. Setiap
+sheet berisi kolom Tanggal, Open, High, Low, Close, Adj Close, dan Volume sejak 2015. Script
+ini berdiri sendiri, jadi bisa juga dijalankan di Google Colab
+(`pip install yfinance pandas openpyxl`).
 
-- Add an LSTM or Transformer model as a deep-learning comparison
-- Add news sentiment features (IndoBERT)
-- Predict volatility, which is more predictable than direction
-- Use quantile regression for prediction intervals
+Opsi: `--start 2015-01-01`, `--end 2026-10-06` (eksklusif), dan `--out path/file.xlsx`.
+
+### 3. Jalankan model dan buat tabel/grafik
+
+```bash
+python -m stockpred.report --excel data/data_saham.xlsx
+```
+
+Data sebelum 2026 dipakai untuk melatih model. Seluruh hari bursa tahun 2026 menjadi
+periode uji dengan validasi *walk-forward*: model dilatih ulang setiap 21 hari bursa dan
+hanya memakai data sebelum hari yang diprediksi. Semua tabel, grafik, dan paragraf hasil
+ditulis ke `laporan/generated/`, sehingga angka di laporan selalu sesuai dengan data.
+
+Untuk uji coba tanpa internet, pakai `--synthetic`. Laporan dari data sintetis otomatis
+diberi peringatan "DATA SINTETIS".
+
+### 4. Kompilasi laporan PDF
+
+```bash
+cd laporan
+latexmk -pdf laporan.tex
+```
+
+Butuh TeX Live atau MiKTeX dengan paket `babel-indonesian`, `listings`, dan `booktabs`. Bisa
+juga di Overleaf: unggah folder `laporan/` (termasuk `generated/`) beserta folder `scripts/`
+dan `src/`, karena kode program dilampirkan dari sana. Jangan lupa ganti `\Penulis` dan
+`\Institusi` di baris awal `laporan.tex`.
+
+## Metodologi singkat
+
+| Kesalahan umum | Yang dilakukan di proyek ini |
+|---|---|
+| Memprediksi level harga (terlihat akurat karena harga besok ≈ harga hari ini) | Memprediksi **log return** hari berikutnya, lalu dikonversi ke harga dan dibandingkan dengan prediksi naif |
+| Split acak atau *scaling* dengan seluruh data (*data leakage*) | **Walk-forward**: latih dengan data masa lalu saja. Ada test otomatis yang memastikan fitur tidak memakai data masa depan |
+| Tanpa pembanding | Dibandingkan dengan baseline **random walk, rata-rata historis, dan momentum** |
+| Hanya melihat akurasi | **Backtest** strategi beli-atau-tunai dengan biaya IDX (beli 0,15%, jual 0,25%) dibandingkan dengan *buy & hold* |
+
+## Struktur
+
+| File | Isi |
+|---|---|
+| `scripts/download_data.py` | Unduh data dari Yahoo Finance ke Excel |
+| `src/stockpred/config.py` | Daftar saham, awal periode uji, biaya transaksi |
+| `src/stockpred/data.py` | Baca Excel dan sesuaikan harga dengan dividen/split |
+| `src/stockpred/features.py` | Fitur teknikal (return lag, volatilitas, RSI, MACD, volume) |
+| `src/stockpred/models.py` | Baseline, Ridge, LightGBM |
+| `src/stockpred/evaluate.py` | Validasi walk-forward dan metrik |
+| `src/stockpred/backtest.py` | Simulasi strategi dengan biaya |
+| `src/stockpred/report.py` | Membuat tabel, grafik, dan paragraf untuk laporan |
+| `laporan/laporan.tex` | Laporan LaTeX |
+| `tests/` | Pengujian (`pytest`) |
 
 ---
 
-For education and portfolio purposes only. This is not investment advice.
+Untuk tujuan pembelajaran dan portofolio, bukan saran investasi.

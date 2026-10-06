@@ -1,4 +1,4 @@
-"""Price data loading: Yahoo Finance with a local CSV cache, plus a synthetic fallback."""
+"""Membaca data harga dari file Excel hasil scripts/download_data.py, plus data sintetis."""
 
 from __future__ import annotations
 
@@ -10,51 +10,31 @@ import pandas as pd
 COLUMNS = ["Open", "High", "Low", "Close", "Volume"]
 
 
-def download_prices(ticker: str, start: str, cache_dir: Path | None = None) -> pd.DataFrame:
-    """Download daily split/dividend-adjusted OHLCV.
-
-    On success the result is written to ``cache_dir``. If the download fails and a
-    cached copy exists, the cached copy is returned instead.
-    """
-    cache = Path(cache_dir) / f"{ticker}.csv" if cache_dir else None
-    try:
-        import yfinance as yf
-
-        df = yf.download(ticker, start=start, auto_adjust=True, progress=False, threads=False)
-        if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
-        df = clean_prices(df)
-        if df.empty:
-            raise RuntimeError(f"No data returned for {ticker}")
-    except Exception:
-        if cache is not None and cache.exists():
-            return load_csv(cache)
-        raise
-    if cache is not None:
-        cache.parent.mkdir(parents=True, exist_ok=True)
-        df.to_csv(cache)
-    return df
-
-
-def load_csv(path: Path) -> pd.DataFrame:
-    df = pd.read_csv(path, index_col=0, parse_dates=True)
-    return clean_prices(df)
+def load_excel(path: Path, codes: list[str]) -> dict[str, pd.DataFrame]:
+    """Baca satu sheet per kode saham dan kembalikan harga OHLCV yang sudah disesuaikan."""
+    sheets = pd.read_excel(path, sheet_name=codes, index_col=0, parse_dates=True)
+    return {code: clean_prices(df) for code, df in sheets.items()}
 
 
 def clean_prices(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    if "Adj Close" in df.columns:
+        # Sesuaikan Open/High/Low/Close dengan faktor dividen & split dari Adj Close,
+        # supaya return tidak "loncat" pada tanggal cum-dividen.
+        factor = df["Adj Close"] / df["Close"]
+        for col in ("Open", "High", "Low", "Close"):
+            df[col] = df[col] * factor
     df = df[COLUMNS].astype(float).dropna()
-    # Yahoo sometimes emits zero-volume rows for IDX holidays and trading halts.
     df = df[df["Volume"] > 0]
     df.index = pd.DatetimeIndex(df.index).tz_localize(None)
-    df.index.name = "Date"
+    df.index.name = "Tanggal"
     return df.sort_index()
 
 
-def synthetic_prices(seed: int = 0, n_days: int = 2600, start: str = "2015-01-02") -> pd.DataFrame:
-    """Random-walk prices with volatility clustering, for offline tests and demos.
+def synthetic_prices(seed: int = 0, end: str = "2026-10-02", n_days: int = 2900) -> pd.DataFrame:
+    """Harga random walk dengan volatilitas berkelompok, untuk uji coba tanpa internet.
 
-    By construction the returns are unpredictable, so a well-behaved pipeline should
-    not find a real edge here.
+    Return-nya acak, jadi pipeline yang benar seharusnya TIDAK menemukan pola di sini.
     """
     rng = np.random.default_rng(seed)
     vol = np.empty(n_days)
@@ -70,7 +50,7 @@ def synthetic_prices(seed: int = 0, n_days: int = 2600, start: str = "2015-01-02
     high = np.maximum(open_, close) * (1 + spread)
     low = np.minimum(open_, close) * (1 - spread)
     volume = rng.lognormal(17, 0.4, n_days) * (1 + 20 * np.abs(ret))
-    idx = pd.bdate_range(start, periods=n_days, name="Date")
+    idx = pd.bdate_range(end=end, periods=n_days, name="Tanggal")
     return pd.DataFrame(
         {"Open": open_, "High": high, "Low": low, "Close": close, "Volume": volume}, index=idx
     )

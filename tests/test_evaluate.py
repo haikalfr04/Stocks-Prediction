@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from stockpred.evaluate import forecast_metrics, walk_forward_predict, walk_forward_splits
+from stockpred.evaluate import directional_accuracy, forecast_metrics, walk_forward_predict, walk_forward_splits
 
 
 def test_splits_train_strictly_before_test_and_cover_everything():
@@ -41,3 +41,9 @@ def test_metrics_perfect_and_random_walk():
     assert perfect["r2_vs_random_walk"] == 1.0
     zero = forecast_metrics(actual, actual * 0)
     assert zero["r2_vs_random_walk"] == 0.0
+
+
+def test_directional_accuracy_ignores_flat_days_and_directionless_models():
+    actual = pd.Series([0.01, 0.0, -0.02, 0.0])
+    assert directional_accuracy(actual, pd.Series([0.1, 0.1, 0.1, 0.1])) == 0.5
+    assert np.isnan(directional_accuracy(actual, pd.Series([0.0, 0.0, 0.0, 0.0])))
