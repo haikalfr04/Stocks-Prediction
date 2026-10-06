@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IDX Return Prediction</title>
+  <meta name="description" content="Next-day return prediction for ASII, BBRI and TLKM with walk-forward validation, honest baselines and a cost-aware backtest.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M1 13 L5 8 L9 10 L15 3' stroke='%232a78d6' stroke-width='2' fill='none'/></svg>">
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js" defer></script>
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <header class="wrap header">
+    <div>
+      <p class="eyebrow">Machine learning portfolio project</p>
+      <h1>Next-day return prediction for IDX stocks</h1>
+      <p class="lede">
+        Can a model predict tomorrow's return for Astra International, Bank Rakyat Indonesia
+        and Telkom Indonesia well enough to beat simply holding the stock? Every number on this
+        page is computed out-of-sample with walk-forward validation, compared against naive
+        baselines, and backtested with real IDX transaction costs.
+      </p>
+    </div>
+    <p class="meta" id="meta">Loading results…</p>
+  </header>
+
+  <main class="wrap">
+    <div class="banner" id="synthetic-banner" hidden>
+      <strong>Demo data.</strong> These results were generated from synthetic random-walk
+      prices, not real market data. The scheduled GitHub Actions run replaces them with
+      live Yahoo Finance data.
+    </div>
+
+    <nav class="tabs" id="tabs" role="tablist" aria-label="Stock"></nav>
+
+    <section class="kpis" id="kpis" aria-live="polite"></section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Price history</h2>
+        <p class="hint">Adjusted close. The shaded region is the out-of-sample test period.</p>
+      </div>
+      <div class="chart" id="chart-price"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Strategy vs buy &amp; hold</h2>
+        <p class="hint">Growth of Rp1 in the test period. Strategy: hold the stock tomorrow when the model predicts a positive return, otherwise cash. Fees: 0.15% buy, 0.25% sell.</p>
+      </div>
+      <div class="chart" id="chart-equity"></div>
+    </section>
+
+    <div class="grid-2">
+      <section class="card">
+        <div class="card-head">
+          <h2>Predicted vs actual return</h2>
+          <p class="hint">Last 120 trading days. Predictions sit close to zero: daily returns are mostly noise, so the model is rarely confident.</p>
+        </div>
+        <div class="chart" id="chart-recent"></div>
+      </section>
+      <section class="card">
+        <div class="card-head">
+          <h2>Rolling directional accuracy</h2>
+          <p class="hint">LightGBM, share of days where the predicted direction was right, over a 63-day (about 3-month) window.</p>
+        </div>
+        <div class="chart" id="chart-hit"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Model comparison</h2>
+        <p class="hint">All metrics are out-of-sample. Baselines are shown in muted text. R² is measured against always predicting 0%: below zero means worse than the random walk.</p>
+      </div>
+      <div class="table-scroll">
+        <table id="table-models"></table>
+      </div>
+    </section>
+
+    <div class="grid-2">
+      <section class="card">
+        <div class="card-head">
+          <h2>What the model looks at</h2>
+          <p class="hint">LightGBM feature importance (share of total gain), from the model trained on the full history.</p>
+        </div>
+        <div class="chart" id="chart-importance"></div>
+      </section>
+      <section class="card prose">
+        <h2>Method</h2>
+        <ol>
+          <li><strong>Data:</strong> daily adjusted prices from Yahoo Finance since 2015.</li>
+          <li><strong>Target:</strong> the next-day log return, not the price. Predicting the price level looks impressive on a chart but only copies yesterday's price.</li>
+          <li><strong>Features:</strong> lagged returns, rolling mean and volatility, distance from moving averages, RSI, MACD, intraday range and volume z-score. Each feature uses only data available at that day's close.</li>
+          <li><strong>Validation:</strong> walk-forward with an expanding window. Each model trains on at least 3 years of data, predicts the next month, then retrains. Test data is never used for training.</li>
+          <li><strong>Baselines:</strong> random walk (0%), historical mean and momentum. A model is only useful if it beats these.</li>
+          <li><strong>Backtest:</strong> long or cash only, since short selling is not generally available on IDX. Fees are included.</li>
+        </ol>
+        <h2>Limitations</h2>
+        <ul>
+          <li>Daily stock returns are close to unpredictable. Small edges in accuracy often disappear after fees.</li>
+          <li>The backtest assumes trades fill at the close price with no slippage.</li>
+          <li>Three stocks and one decade of data make for a small sample. Results can vary across regimes.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="wrap footer">
+    <p>For education and portfolio purposes only. This is not investment advice.</p>
+    <p><a href="https://github.com/haikalfr04/Stocks-Prediction">Source code on GitHub</a></p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,63 @@
+name: Update predictions and deploy site
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 10:37 UTC = 17:37 WIB, Mon-Fri, after the IDX close (16:00 WIB).
+    - cron: "37 10 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install
+        run: pip install -e ".[dev]"
+
+      - name: Test
+        run: pytest -q
+
+      # Keep the last good download so a Yahoo Finance outage doesn't break the site.
+      - name: Restore price cache
+        uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: prices-${{ github.run_id }}
+          restore-keys: prices-
+
+      - name: Run pipeline
+        run: python -m stockpred.pipeline --out site/data
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
